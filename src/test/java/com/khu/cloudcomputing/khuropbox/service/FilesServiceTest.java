@@ -1,6 +1,7 @@
 package com.khu.cloudcomputing.khuropbox.service;
 
 import com.khu.cloudcomputing.khuropbox.dto.FilesDTO;
+import com.khu.cloudcomputing.khuropbox.dto.FilesUpdateDTO;
 import com.khu.cloudcomputing.khuropbox.entity.Files;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
@@ -50,7 +51,8 @@ class FilesServiceTest {
                 .build()));
         //when
         String updatedName="test3";
-        filesService.updateFileName(insertFile, updatedName);
+        FilesUpdateDTO fileUpdate=new FilesUpdateDTO(insertFile, updatedName);
+        filesService.updateFileName(fileUpdate);
         FilesDTO updatedFile=filesService.findById(insertFile);
         //then
         assertEquals(updatedName, updatedFile.getFileName());
