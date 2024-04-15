@@ -1,36 +1,50 @@
 # khuropbox
 ```mermaid
-graph TD
-    subgraph 클라우드
-        S3[S3]
-        RDS[RDS]
-        ASG[ASG]
-        ELB[ELB]
-        Cognito[Cognito]
-    end
+digraph {
+    rankdir=TD;
 
-    VPC[VPC] --> S3
-    VPC --> RDS
-    VPC --> ASG
-    VPC --> ELB
-    VPC --> Cognito
-    
-    FC7_A[FC7 인스턴스 A (프론트엔드 서버)] --> ELB
-    FC2_R[FC2 인스턴스 R (프론트엔드 서버)] --> ELB
+    VPC [label="VPC"];
+    S3 [label="S3"];
+    RDS [label="RDS"];
+    ASG [label="ASG"];
+    ELB [label="ELB"];
+    Cognito [label="Cognito"];
+    Route53 [label="Route 53"];
+    FC7_A [label="FC7 인스턴스 A (프론트엔드 서버)"];
+    FC2_R [label="FC2 인스턴스 R (프론트엔드 서버)"];
+    FC7_C [label="FC7 인스턴스 C (백엔드 서버)"];
+    FC2_D [label="FC2 인스턴스 D (백엔드 서버)"];
 
-    ELB --> api.fsoftwaregineer.com
-    api.fsoftwaregineer.com --> RDS
+    VPC -> S3;
+    VPC -> RDS;
+    VPC -> ASG;
+    VPC -> ELB;
+    VPC -> Cognito;
 
-    FC7_C[FC7 인스턴스 C (백엔드 서버)] --> ELB
-    FC2_D[FC2 인스턴스 D (백엔드 서버)] --> ELB
+    FC7_A -> ELB;
+    FC2_R -> ELB;
+    ELB -> Route53;
+    Route53 -> "api.fsoftwaregineer.com";
+    "api.fsoftwaregineer.com" -> RDS;
 
-    ELB --> app.Isoftwaregineer.com
-    app.Isoftwaregineer.com --> RDS
+    FC7_C -> ELB;
+    FC2_D -> ELB;
+    ELB -> Route53;
+    Route53 -> "app.Isoftwaregineer.com";
+    "app.Isoftwaregineer.com" -> RDS;
 
-    style FC7_A, FC7_C, FC2_R, FC2_D default #f7f8fa;
-    style RDS #f0fff0;
-    style S3 #e6f0ff;
-    style ASG #d6e9c6;
-    style ELB #fff0f5;
-    style Cognito #c4d3f0;
+    Route53 -> "M.50.RDS";
+
+    node [style=filled];
+    FC7_A [fillcolor="#f7f8fa"];
+    FC7_C [fillcolor="#f7f8fa"];
+    FC2_R [fillcolor="#f7f8fa"];
+    FC2_D [fillcolor="#f7f8fa"];
+    RDS [fillcolor="#f0fff0"];
+    S3 [fillcolor="#e6f0ff"];
+    ASG [fillcolor="#d6e9c6"];
+    ELB [fillcolor="#fff0f5"];
+    Cognito [fillcolor="#c4d3f0"];
+    Route53 [fillcolor="#c0c0c0"];
+}
 ```
