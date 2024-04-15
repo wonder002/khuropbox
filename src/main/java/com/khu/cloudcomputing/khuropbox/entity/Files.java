@@ -3,6 +3,7 @@ package com.khu.cloudcomputing.khuropbox.entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -25,9 +26,12 @@ public class Files {
     private String fileType;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @Lob
+    private byte[] fileData;
 
-    public Files update(String fileName, LocalDateTime updatedAt){
+    public Files update(String fileName, String fileLink, LocalDateTime updatedAt){
         this.fileName=fileName;
+        this.fileLink=fileLink;
         this.updatedAt=updatedAt;
         return this;
     }

@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: khuropbox
+cloud:
+  aws:
+    s3:
+      bucket: khuropbox
+    credentials:
+      access-key:
+      secret-key: 
+    region:
+      static: ap-northeast-2
+      auto: false
+    stack:
+      auto: false

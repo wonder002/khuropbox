@@ -19,7 +19,6 @@ public class FilesDTO {
     private String fileType;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
     public FilesDTO(Files entity){
         this.id=entity.getId();
         this.fileName=entity.getFileName();

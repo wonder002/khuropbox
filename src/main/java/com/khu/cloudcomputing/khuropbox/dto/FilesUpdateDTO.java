@@ -12,4 +12,5 @@ import lombok.Setter;
 public class FilesUpdateDTO {
     private Integer id;
     private String fileName;
+    private String fileLink;
 }
