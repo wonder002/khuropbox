@@ -1,28 +1,35 @@
-package com.khu.cloudcomputing.khuropbox.service;
+package com.khu.cloudcomputing.khuropbox.files.service;
 
 
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.khu.cloudcomputing.khuropbox.dto.FilesDTO;
-import com.khu.cloudcomputing.khuropbox.dto.FilesUpdateDTO;
-import com.khu.cloudcomputing.khuropbox.entity.Files;
-import com.khu.cloudcomputing.khuropbox.repository.FilesRepository;
+import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.IOUtils;
+import com.khu.cloudcomputing.khuropbox.files.dto.FilesDTO;
+import com.khu.cloudcomputing.khuropbox.files.dto.FilesUpdateDTO;
+import com.khu.cloudcomputing.khuropbox.files.entity.Files;
+import com.khu.cloudcomputing.khuropbox.files.repository.FilesRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.web.servlet.function.RequestPredicates.contentType;
 
 @Slf4j
 @Service
@@ -69,18 +76,32 @@ public class FilesServiceImpl implements FilesService {
         return filesRepository.save(file.toEntity()).getId();
     }
     @Override
-    public String upload(MultipartFile multipartFile, String dirName) throws IOException { // dirName의 디렉토리가 S3 Bucket 내부에 생성됨
+    public String upload(MultipartFile multipartFile, String dirName, Integer id) throws IOException { // dirName의 디렉토리가 S3 Bucket 내부에 생성됨
 
         File uploadFile = convert(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File 전환 실패"));
-        return upload(uploadFile, dirName);
+        return upload(uploadFile, dirName, id);
     }
-    private String upload(File uploadFile, String dirName) {
+    @Override
+    public ResponseEntity<byte[]> download(String fileUrl) throws IOException { // 객체 다운  fileUrl : 폴더명/파일네임.파일확장자
+        S3Object s3Object = amazonS3Client.getObject(new GetObjectRequest(bucket, fileUrl));
+        S3ObjectInputStream objectInputStream = s3Object.getObjectContent();
+        byte[] bytes = IOUtils.toByteArray(objectInputStream);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(contentType(fileUrl));
+        httpHeaders.setContentLength(bytes.length);
+        String[] arr = fileUrl.split("/");
+        String type = arr[arr.length - 1];
+        String fileName = URLEncoder.encode(type, "UTF-8").replaceAll("\\+", "%20");
+        httpHeaders.setContentDispositionFormData("attachment", fileName); // 파일이름 지정
+
+        return new ResponseEntity<>(bytes, httpHeaders, HttpStatus.OK);
+    }
+    private String upload(File uploadFile, String dirName, Integer id) {
         String fileName = dirName + "/" + uploadFile.getName();
         String uploadImageUrl = putS3(uploadFile, fileName);
-
         removeNewFile(uploadFile);  // convert()함수로 인해서 로컬에 생성된 File 삭제 (MultipartFile -> File 전환 하며 로컬에 파일 생성됨)
-
         return uploadImageUrl;      // 업로드된 파일의 S3 URL 주소 반환
     }
     private void removeNewFile(File targetFile) {
@@ -106,5 +127,15 @@ public class FilesServiceImpl implements FilesService {
             return Optional.of(convertFile);
         }
         return Optional.empty();
+    }
+    private MediaType contentType(String keyname) {
+        String[] arr = keyname.split("\\.");
+        String type = arr[arr.length - 1];
+        return switch (type) {
+            case "txt" -> MediaType.TEXT_PLAIN;
+            case "png" -> MediaType.IMAGE_PNG;
+            case "jpg" -> MediaType.IMAGE_JPEG;
+            default -> MediaType.APPLICATION_OCTET_STREAM;
+        };
     }
 }

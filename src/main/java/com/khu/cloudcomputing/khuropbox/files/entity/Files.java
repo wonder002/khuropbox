@@ -1,12 +1,10 @@
-package com.khu.cloudcomputing.khuropbox.entity;
+package com.khu.cloudcomputing.khuropbox.files.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import lombok.*;
-import org.hibernate.annotations.DynamicInsert;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 

@@ -1,9 +1,10 @@
-package com.khu.cloudcomputing.khuropbox.controller;
+package com.khu.cloudcomputing.khuropbox.files.controller;
 
-import com.khu.cloudcomputing.khuropbox.dto.FilesDTO;
-import com.khu.cloudcomputing.khuropbox.dto.FilesUpdateDTO;
-import com.khu.cloudcomputing.khuropbox.service.FilesService;
+import com.khu.cloudcomputing.khuropbox.files.dto.FilesDTO;
+import com.khu.cloudcomputing.khuropbox.files.dto.FilesUpdateDTO;
+import com.khu.cloudcomputing.khuropbox.files.service.FilesService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,7 @@ public class FilesController {
     @Autowired
     private final FilesService filesService;
 
+    private Integer id=1;
     public FilesController(FilesService filesService) {
         this.filesService = filesService;
     }
@@ -45,7 +47,8 @@ public class FilesController {
         if (multipartFile != null) { // 파일 업로드한 경우에만
             try {// 파일 업로드
                 FilesDTO file=new FilesDTO();
-                fileLink = filesService.upload(multipartFile, ""); // S3 버킷의 images 디렉토리 안에 저장됨
+                fileLink = filesService.upload(multipartFile, "", id); // S3 버킷의 images 디렉토리 안에 저장됨
+                id++;
                 file.setFileName(fileName);
                 file.setFileLink(fileLink);
                 file.setFileSize(multipartFile.getSize());
@@ -56,5 +59,13 @@ public class FilesController {
                 System.out.println("error");
             }
         }
+    }
+    @GetMapping("download/{id}")
+    public ResponseEntity<byte[]> Download(@PathVariable(value="id") Integer id) throws IOException {
+        FilesDTO file=filesService.findById(id);
+        String filePath = file.getFileLink().substring(56);
+        filePath='/'+ filePath;
+        System.out.println(filePath);
+        return filesService.download(filePath);
     }
 }

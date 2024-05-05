@@ -1,4 +1,4 @@
-package com.khu.cloudcomputing.khuropbox.dto;
+package com.khu.cloudcomputing.khuropbox.files.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

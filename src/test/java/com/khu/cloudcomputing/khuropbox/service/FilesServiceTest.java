@@ -1,8 +1,9 @@
 package com.khu.cloudcomputing.khuropbox.service;
 
-import com.khu.cloudcomputing.khuropbox.dto.FilesDTO;
-import com.khu.cloudcomputing.khuropbox.dto.FilesUpdateDTO;
-import com.khu.cloudcomputing.khuropbox.entity.Files;
+import com.khu.cloudcomputing.khuropbox.files.dto.FilesDTO;
+import com.khu.cloudcomputing.khuropbox.files.dto.FilesUpdateDTO;
+import com.khu.cloudcomputing.khuropbox.files.entity.Files;
+import com.khu.cloudcomputing.khuropbox.files.service.FilesService;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 

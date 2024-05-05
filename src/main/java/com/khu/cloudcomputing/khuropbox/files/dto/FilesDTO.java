@@ -1,10 +1,9 @@
-package com.khu.cloudcomputing.khuropbox.dto;
+package com.khu.cloudcomputing.khuropbox.files.dto;
 
-import com.khu.cloudcomputing.khuropbox.entity.Files;
+import com.khu.cloudcomputing.khuropbox.files.entity.Files;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
