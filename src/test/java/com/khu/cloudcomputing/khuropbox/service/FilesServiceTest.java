@@ -1,6 +1,7 @@
 package com.khu.cloudcomputing.khuropbox.service;
 
 import com.khu.cloudcomputing.khuropbox.files.dto.FilesDTO;
+import com.khu.cloudcomputing.khuropbox.files.dto.FilesInformationDTO;
 import com.khu.cloudcomputing.khuropbox.files.dto.FilesUpdateDTO;
 import com.khu.cloudcomputing.khuropbox.files.entity.Files;
 import com.khu.cloudcomputing.khuropbox.files.service.FilesService;
@@ -32,7 +33,7 @@ class FilesServiceTest {
                 .updatedAt(null)
                 .build()));
         //when
-        FilesDTO findFile=filesService.findById(insertFile);
+        FilesInformationDTO findFile=filesService.findById(insertFile);
         //then
         assertEquals(insertFile, findFile.getId());
     }
@@ -53,7 +54,7 @@ class FilesServiceTest {
         String updatedName="test3";
         FilesUpdateDTO fileUpdate=new FilesUpdateDTO(insertFile, updatedName,"/");
         filesService.updateFile(fileUpdate);
-        FilesDTO updatedFile=filesService.findById(insertFile);
+        FilesInformationDTO updatedFile=filesService.findById(insertFile);
         //then
         assertEquals(updatedName, updatedFile.getFileName());
         assertNotNull(updatedFile.getUpdatedAt());

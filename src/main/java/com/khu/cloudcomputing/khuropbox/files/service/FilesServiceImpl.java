@@ -1,10 +1,13 @@
 package com.khu.cloudcomputing.khuropbox.files.service;
 
 
+import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.IOUtils;
 import com.khu.cloudcomputing.khuropbox.files.dto.FilesDTO;
+import com.khu.cloudcomputing.khuropbox.files.dto.FilesInformationDTO;
 import com.khu.cloudcomputing.khuropbox.files.dto.FilesUpdateDTO;
 import com.khu.cloudcomputing.khuropbox.files.entity.Files;
 import com.khu.cloudcomputing.khuropbox.files.repository.FilesRepository;
@@ -42,45 +45,59 @@ public class FilesServiceImpl implements FilesService {
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
-
     @Override
-    public FilesDTO findById(Integer id) {//id를 이용하여 찾는 메서드
-        return new FilesDTO(filesRepository.findById(id).orElse(new Files()));
+    public FilesInformationDTO findById(Integer id) {//id를 이용하여 찾는 메서드
+        return new FilesInformationDTO(filesRepository.findById(id).orElse(new Files()));
     }
-
     @Override
-    public List<FilesDTO> findAll() {//모든 파일을 찾는 메서드, 추후 user객체가 연계되면 바꿀 예정
+    public String findLinkById(Integer id){
+        return filesRepository.findById(id).orElse(new Files()).getFileLink();
+    }
+    @Override
+    public List<FilesInformationDTO> findAll() {//모든 파일을 찾는 메서드, 추후 user객체가 연계되면 바꿀 예정
         List<Files> list = filesRepository.findAll();
-        List<FilesDTO> listDTO = new ArrayList<>();
+        List<FilesInformationDTO> listDTO = new ArrayList<>();
         for (Files files : list) {
-            listDTO.add(new FilesDTO(files));
+            listDTO.add(new FilesInformationDTO(files));
         }
         return listDTO;
     }
-
     @Override
     public void updateFile(FilesUpdateDTO fileUpdate) {//파일이름 갱신 메서드
         Files file = this.filesRepository.findById(fileUpdate.getId()).orElseThrow();
         file.update(fileUpdate.getFileName(), fileUpdate.getFileLink(), LocalDateTime.now());
         this.filesRepository.save(file);
     }
-
+    @Override
+    public void updateLink(Integer id, String fileLink){
+        Files file=this.filesRepository.findById(id).orElseThrow();
+        file.updateLink(fileLink);
+        this.filesRepository.save(file);
+    }
     @Override
     public void deleteFile(Integer id) {//파일 삭제 메서드
         filesRepository.deleteById(id);
     }
-
+    @Override
+    public void deleteAtS3(String filePath){
+        try {
+            // S3에서 삭제
+            amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, filePath));
+            log.info(String.format("[%s] deletion complete", filePath));
+        } catch (AmazonServiceException e) {
+            log.error(e.getErrorMessage());
+        }
+    }
     @Override
     public Integer insertFile(FilesDTO file) {//파일 업로드 메서드
         file.setCreatedAt(LocalDateTime.now());
         return filesRepository.save(file.toEntity()).getId();
     }
     @Override
-    public String upload(MultipartFile multipartFile, String dirName, Integer id) throws IOException { // dirName의 디렉토리가 S3 Bucket 내부에 생성됨
-
+    public String upload(MultipartFile multipartFile, String dirName, Integer id, String fileType) throws IOException { // dirName의 디렉토리가 S3 Bucket 내부에 생성됨
         File uploadFile = convert(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File 전환 실패"));
-        return upload(uploadFile, dirName, id);
+        return upload(uploadFile, dirName, id, fileType);
     }
     @Override
     public ResponseEntity<byte[]> download(String fileUrl) throws IOException { // 객체 다운  fileUrl : 폴더명/파일네임.파일확장자
@@ -98,8 +115,8 @@ public class FilesServiceImpl implements FilesService {
 
         return new ResponseEntity<>(bytes, httpHeaders, HttpStatus.OK);
     }
-    private String upload(File uploadFile, String dirName, Integer id) {
-        String fileName = dirName + "/" + uploadFile.getName();
+    private String upload(File uploadFile, String dirName, Integer id, String fileType) {
+        String fileName = dirName + "/" + id+"."+fileType;
         String uploadImageUrl = putS3(uploadFile, fileName);
         removeNewFile(uploadFile);  // convert()함수로 인해서 로컬에 생성된 File 삭제 (MultipartFile -> File 전환 하며 로컬에 파일 생성됨)
         return uploadImageUrl;      // 업로드된 파일의 S3 URL 주소 반환

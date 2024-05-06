@@ -24,13 +24,16 @@ public class Files {
     private String fileType;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    @Lob
-    private byte[] fileData;
+
 
     public Files update(String fileName, String fileLink, LocalDateTime updatedAt){
         this.fileName=fileName;
         this.fileLink=fileLink;
         this.updatedAt=updatedAt;
+        return this;
+    }
+    public Files updateLink(String fileLink){
+        this.fileLink=fileLink;
         return this;
     }
 }
